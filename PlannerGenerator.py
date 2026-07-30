@@ -28,17 +28,16 @@ def calendarGen(x, y, date):
     pdf.text(x + 25 + 1, y + 3, "S")
     pdf.text(x + 30 + 1, y + 3, "S")
 
-    monthDate = datetime.strptime("01-" + str(date.month) +"-"+ str(date.year), "%d-%m-%Y").date()
+    monthDate = datetime.strptime("01-" + str(date.month) +"-"+ str(date.year), "%d-%m-%Y").date() #gets first of month
     monthStartDay = calendar.weekday(monthDate.year, monthDate.month, monthDate.day)
 
     cell = 0
-
-    for i in range(0,40):
+    for i in range(0,42):
         line = cell // 7
         xSpacing = cell%7 * 5
-        ySpacing = line * 5 + 8
+        ySpacing = line * 4 + 8
         if cell < monthStartDay or monthDate.month != date.month:
-            pdf.text(x + xSpacing + 1, y + ySpacing, "-")
+            pdf.text(x + xSpacing + 1, y + ySpacing, " -")
         else:
             pdf.text(x + xSpacing + 1, y + ySpacing, str(monthDate.day))
             monthDate = monthDate + timedelta(days=1)
@@ -46,14 +45,15 @@ def calendarGen(x, y, date):
 
     for i in range(1, 7):
         spacing = i * 5
-        pdf.line(x + spacing, y, x + spacing, y + 30)
+        pdf.line(x + spacing, y, x + spacing, y + 28)
 
 #startup get info
 startDate = getDate("Enter start date")
 endDate = getDate("Enter end date")
-daysToGenerate = endDate - startDate
-startYear = startDate.year
 daysPerPage = int(input("Days per page: "))
+#startup do calculations
+startYear = startDate.year
+daysToGenerate = endDate - startDate
 
 #pdf setup
 pdf = FPDF(orientation='P', unit='mm', format='A5')
@@ -62,9 +62,9 @@ pdf.set_auto_page_break(auto=True, margin=15)
 l = 0
 while l < daysToGenerate.days:
 
-    date = startDate + timedelta(days=l)
     pdf.add_page()
     pdf.set_font('Arial', 'B', size=24)
+    date = startDate + timedelta(days=l)
 
     monthName = calendar.month_name[date.month]
     title = monthName + "   " + str(date.year)
@@ -78,9 +78,20 @@ while l < daysToGenerate.days:
     pdf.line(95, 175, 95, 195) #right calendar split
 
     dayHeight = 140 / daysPerPage
-    pdf.set_line_width(0.8)
-    for i in range(0, daysPerPage): #day separators
-        pdf.dashed_line(14, 25 + i*dayHeight, 134, 25 + i*dayHeight, 8, 8.1)
+    for i in range(0, daysPerPage): #drawing days
+        pdf.set_line_width(0.8)
+        pdf.dashed_line(14, 25 + i*dayHeight, 134, 25 + i*dayHeight, 8, 8.1) #day separators
+        dayNum = i*dayHeight
+        date = startDate + timedelta(days=l)
+        dateName = calendar.day_abbr[calendar.weekday(date.year, date.month, date.day)] +" "+ str(date.day) +" "+ calendar.month_abbr[date.month]
+        pdf.set_font_size(12)
+        pdf.text(15, dayNum + 30, dateName) #day title
+        liney = dayNum + 30
+        pdf.set_line_width(0.2)
+        while liney < dayNum + dayHeight + 20: #day lines
+            liney += 5
+            pdf.dashed_line(15, liney, 138, liney, 0.1, 0.3)
+        l+=1
 
     calendarGen(57.5, 172, date)
     firstOfMonth = datetime.strptime("01-" + str(date.month) +"-"+ str(date.year), "%d-%m-%Y").date()
@@ -88,18 +99,6 @@ while l < daysToGenerate.days:
     calendarGen(10, 172, prevMonth)
     nextMonth = firstOfMonth + timedelta(days=32)
     calendarGen(100, 172, nextMonth)
-
-    for i in range(0, daysPerPage):
-        dayNum = i*dayHeight
-        pdf.set_font_size(12)
-        date = startDate + timedelta(days=l)
-        dateName = calendar.day_abbr[calendar.weekday(date.year, date.month, date.day)] +" "+ str(date.day) +" "+ calendar.month_abbr[date.month]
-        pdf.text(15, dayNum + 30, dateName)
-        liney = dayNum + 30
-        while liney < dayNum + dayHeight + 20:
-            liney += 5
-            pdf.dashed_line(15, liney, 138, liney, 0.1, 0.15)
-        l+=1
 
 desktopPath = Path.cwd().parent
 filename = f"Planner_{startDate.strftime('%d-%m-%Y')}.pdf"
