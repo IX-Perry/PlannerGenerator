@@ -15,7 +15,7 @@ def getDate(Prompt):
 
 def calendarGen(x, y, date):
     pdf.set_font_size(12)
-    pdf.text(x + 1, y - 2, calendar.month_name[date.month])
+    pdf.text(x + 1, y - 2, str(calendar.month_name[date.month]))
 
     pdf.set_font_size(8)
     pdf.set_line_width(0.2)
@@ -90,15 +90,15 @@ while l < daysToGenerate.days:
     calendarGen(100, 172, nextMonth)
 
     for i in range(0, daysPerPage):
+        dayNum = i*dayHeight
         pdf.set_font_size(12)
         date = startDate + timedelta(days=l)
         dateName = calendar.day_abbr[calendar.weekday(date.year, date.month, date.day)] +" "+ str(date.day) +" "+ calendar.month_abbr[date.month]
-        pdf.text(15, 30 + i*dayHeight, dateName)
-        #code for making the lines to write on for each day, currently broken
-        #linex = 0
-        #for i in range(0, daysPerPage):
-        #    linex = i*7 + 32
-        #    pdf.dashed_line(15, linex, 133, linex, 0.5, 0.6)
+        pdf.text(15, dayNum + 30, dateName)
+        liney = dayNum + 30
+        while liney < dayNum + dayHeight + 20:
+            liney += 5
+            pdf.dashed_line(15, liney, 138, liney, 0.1, 0.15)
         l+=1
 
 desktopPath = Path.cwd().parent
